@@ -9,16 +9,18 @@ class Domain {
 class DomainManager {
     constructor() {
         this.domains = [];
+        this._dirty = false;
     }
 
     addDomain(name, priority, metadata) {
         const domain = new Domain(name, priority, metadata);
         this.domains.push(domain);
-        this.organizeDomains();
+        this._dirty = true;
     }
 
     organizeDomains() {
         this.domains.sort((a, b) => b.priority - a.priority);
+        this._dirty = false;
     }
 
     queryDomains(criteria) {
@@ -30,14 +32,11 @@ class DomainManager {
     }
 
     getDomains() {
+        if (this._dirty) {
+            this.organizeDomains();
+        }
         return this.domains;
     }
 }
 
-// Example usage
-const domainManager = new DomainManager();
-domainManager.addDomain('example.com', 1, { owner: 'Alice', registered: '2020-01-01' });
-domainManager.addDomain('example.org', 2, { owner: 'Bob', registered: '2021-01-01' });
-
-console.log(domainManager.getDomains());
-console.log(domainManager.queryDomains({ owner: 'Alice' }));
+export { Domain, DomainManager };
