@@ -38,8 +38,8 @@ class BulkHunterService {
         return async () => {
             const now = Date.now();
             const waitTime = Math.max(rateLimit - (now - lastExecution), 0);
+            lastExecution = now + waitTime;
             await new Promise(resolve => setTimeout(resolve, waitTime));
-            lastExecution = Date.now();
         };
     }
 

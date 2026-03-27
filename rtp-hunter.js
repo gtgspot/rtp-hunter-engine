@@ -58,11 +58,9 @@ export async function huntRTP(domain) {
 
   try {
     await page.goto(`http://${domain}`, {
-      timeout: 15000
+      timeout: 15000,
+      waitUntil: 'networkidle'
     });
-
-    // wait for async game loaders
-    await page.waitForTimeout(8000);
   } catch (e) {
     await browser.close();
     return [{ error: e.message, url: `http://${domain}` }];

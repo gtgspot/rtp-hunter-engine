@@ -82,7 +82,7 @@ class SpinSimulationEngine {
             if (spinResponse) {
                 const spinData = this.extractSpinData(spinResponse);
                 spinResults.push(spinData);
-                this.totalBet += spinData.bet;
+                this.totalBet += betAmount;
                 this.totalReturn += spinData.win;
                 this.spins.push(spinData);
             }
