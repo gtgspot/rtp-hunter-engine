@@ -1,16 +1,18 @@
-// domains.js
-
-// Domain configuration data
-const domains = [
-    { name: 'example1.com', priority: 1 },
-    { name: 'example2.com', priority: 2 },
-    { name: 'example3.com', priority: 1 },
-    { name: 'example4.com', priority: 3 },
-];
+'use strict';
 
 /**
- * Organizes the provided domain array by priority levels.
- * @returns {Object} Organized domains by priority.
+ * Domain configuration module.
+ * Loads the canonical domain list from config/domains.json and provides
+ * helper functions for organizing, filtering, and batching domains.
+ *
+ * For the full category/tier metadata, see src/config/domain-categories.js.
+ */
+
+const domains = require('../../config/domains.json');
+
+/**
+ * Organizes all domains by their priority value.
+ * @returns {Object} Map of priority → domain array.
  */
 function organizeByPriority() {
     return domains.reduce((acc, domain) => {
@@ -21,31 +23,31 @@ function organizeByPriority() {
 }
 
 /**
- * Filters domains based on given criteria.
- * @param {Function} criteria - Function to test each domain.
- * @returns {Array} Filtered domains.
+ * Filters domains based on a predicate function.
+ * @param {Function} criteria - Function receiving a domain object, returning boolean.
+ * @returns {Array<Object>} Filtered domains.
  */
 function filterDomains(criteria) {
     return domains.filter(criteria);
 }
 
 /**
- * Categorizes domains into different buckets.
- * @param {Array} categories - Array of categories to use for categorization.
- * @returns {Object} Categorized domains.
+ * Categorizes domains matching each of the provided category names.
+ * @param {string[]} categories - Array of category name strings.
+ * @returns {Object} Map of category name → matched domain objects.
  */
 function categorizeDomains(categories) {
     const categorized = {};
     categories.forEach(category => {
-        categorized[category] = domains.filter(domain => domain.name.includes(category));
+        categorized[category] = domains.filter(domain => domain.category === category);
     });
     return categorized;
 }
 
 /**
- * Processes domains in batches.
- * @param {number} batchSize - Size of each batch.
- * @returns {Array} Processed batch of domains.
+ * Splits the domain list into batches of the specified size.
+ * @param {number} batchSize - Number of domains per batch.
+ * @returns {Array<Array<Object>>} Array of domain batches.
  */
 function batchProcessDomains(batchSize) {
     const batches = [];
