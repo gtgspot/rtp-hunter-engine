@@ -129,13 +129,13 @@ class SpinSimulationEngine {
     }
 }
 
-export async function runSpinSimulation(domain, spinCount = 100) {
+export async function runSpinSimulation(domain, spinCount = 100, options = {}) {
     const engine = new SpinSimulationEngine({ headless: true, timeout: 30000, });
     try {
         console.log(`🎰 Initializing Spin Simulation Engine for ${domain}`);
         await engine.initialize(domain);
         console.log(`🎮 Simulating ${spinCount} spins...`);
-        await engine.simulateSpins(spinCount, 1.0);
+        await engine.simulateSpins(spinCount, options.betAmount ?? 1.0);
         const report = engine.generateReport();
         console.log("📊 Spin Simulation Report:", report);
         return report;

@@ -63,7 +63,10 @@ export async function huntRTP(domain) {
 
     // wait for async game loaders
     await page.waitForTimeout(8000);
-  } catch (e) {}
+  } catch (e) {
+    await browser.close();
+    return [{ error: e.message, url: `http://${domain}` }];
+  }
 
   await browser.close();
 
