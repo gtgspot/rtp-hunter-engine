@@ -1,1 +1,10 @@
-{\n  "name": "rtp-hunter-engine",\n  "version": "1.0.0",\n  "dependencies": {\n    "express": "^4.17.1",\n    "playwright": "^1.18.0",\n    "cheerio": "^1.0.0-rc.10",\n    "cors": "^2.8.5"\n  }\n}
+{
+  "name": "rtp-hunter-engine",
+  "version": "1.0.0",
+  "dependencies": {
+    "express": "^4.17.1",
+    "playwright": "^1.18.0",
+    "cheerio": "^1.0.0-rc.10",
+    "cors": "^2.8.5"
+  }
+}
