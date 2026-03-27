@@ -164,6 +164,11 @@ class DomainManager {
   addDomain(domain, priority, category, tier) {
     if (this._domainMap.has(domain)) {
       throw new Error(`Domain already exists: ${domain}`);
+    getDomains() {
+        if (this._dirty) {
+            this.organizeDomains();
+        }
+        return this.domains;
     }
     const detectedCategory = category || detectCategory(domain);
     const entry = { domain, priority, tier: tier || 1, category: detectedCategory };
@@ -196,3 +201,4 @@ class DomainManager {
 }
 
 module.exports = DomainManager;
+export { Domain, DomainManager };

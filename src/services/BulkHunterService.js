@@ -48,6 +48,14 @@ class BulkHunterService {
       if (queue.length === 0) return;
       const item = queue.shift();
       const domainName = typeof item === 'string' ? item : item.domain;
+    async processDomains(domains, options = {}) {
+        const { concurrencyLimit = 5, rateLimit = 1000 } = options;
+        const results = [];
+        const errors = [];
+        const progress = {
+            total: domains.length,
+            completed: 0,
+        };
 
       // Enforce rate limit
       const now = Date.now();
@@ -75,6 +83,21 @@ class BulkHunterService {
         await runNext();
       }
     };
+        // Build lazy task factories — no work starts until a slot is available
+        const tasks = domains.map(domain => async () => {
+            await rateLimiter();
+            try {
+                const result = await this.huntingFunction(domain);
+                results.push(result);
+            } catch (error) {
+                errors.push({ domain, error });
+            } finally {
+                progress.completed++;
+                this.logProgress(progress);
+            }
+        });
+
+        await this.concurrentPool(tasks, concurrencyLimit);
 
     // Seed initial workers up to concurrencyLimit
     const initial = Math.min(concurrencyLimit, domains.length);
@@ -118,6 +141,28 @@ class BulkHunterService {
           await this._sleep(this.retryDelayMs);
         }
       }
+    createRateLimiter(rateLimit) {
+        let lastExecution = 0;
+        return async () => {
+            const now = Date.now();
+            const waitTime = Math.max(rateLimit - (now - lastExecution), 0);
+            lastExecution = now + waitTime;
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+        };
+    }
+
+    async concurrentPool(tasks, limit) {
+        let index = 0;
+
+        const runNext = async () => {
+            if (index >= tasks.length) return;
+            const task = tasks[index++];
+            await task();
+            await runNext();
+        };
+
+        const workers = Array.from({ length: Math.min(limit, tasks.length) }, runNext);
+        await Promise.all(workers);
     }
     throw lastError;
   }
@@ -144,4 +189,4 @@ class BulkHunterService {
   }
 }
 
-module.exports = BulkHunterService;
+export default BulkHunterService;

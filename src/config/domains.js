@@ -57,11 +57,5 @@ function batchProcessDomains(batchSize) {
     return batches;
 }
 
-module.exports = {
-    domains,
-    organizeByPriority,
-    filterDomains,
-    categorizeDomains,
-    batchProcessDomains,
-};
-
+// Exporting helper functions
+export { organizeByPriority, filterDomains, categorizeDomains, batchProcessDomains };
