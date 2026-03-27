@@ -3,7 +3,7 @@ class BulkHunterService {
         this.huntingFunction = huntingFunction;
     }
 
-    async processDomains(domains, options) {
+    async processDomains(domains, options = {}) {
         const { concurrencyLimit = 5, rateLimit = 1000 } = options;
         const results = [];
         const errors = [];
@@ -14,7 +14,8 @@ class BulkHunterService {
 
         const rateLimiter = this.createRateLimiter(rateLimit);
 
-        const promises = domains.map(async (domain) => {
+        // Build lazy task factories — no work starts until a slot is available
+        const tasks = domains.map(domain => async () => {
             await rateLimiter();
             try {
                 const result = await this.huntingFunction(domain);
@@ -27,8 +28,7 @@ class BulkHunterService {
             }
         });
 
-        // Limit concurrency
-        await this.concurrentLimit(promises, concurrencyLimit);
+        await this.concurrentPool(tasks, concurrencyLimit);
 
         return { results, errors };
     }
@@ -38,31 +38,23 @@ class BulkHunterService {
         return async () => {
             const now = Date.now();
             const waitTime = Math.max(rateLimit - (now - lastExecution), 0);
+            lastExecution = now + waitTime;
             await new Promise(resolve => setTimeout(resolve, waitTime));
-            lastExecution = Date.now();
         };
     }
 
-    async concurrentLimit(promises, limit) {
+    async concurrentPool(tasks, limit) {
         let index = 0;
-        const executing = new Set();
 
-        const enqueue = async () => {
-            if (index >= promises.length) return;
-            const promise = promises[index++];
-            executing.add(promise);
-            promise.then(() => executing.delete(promise));
-            return promise;
+        const runNext = async () => {
+            if (index >= tasks.length) return;
+            const task = tasks[index++];
+            await task();
+            await runNext();
         };
 
-        const results = [];  
-        while (index < promises.length) {
-            if (executing.size < limit) {
-                results.push(enqueue());
-            }
-            await Promise.race(results);
-        }
-        await Promise.all(results);
+        const workers = Array.from({ length: Math.min(limit, tasks.length) }, runNext);
+        await Promise.all(workers);
     }
 
     logProgress(progress) {
@@ -70,4 +62,4 @@ class BulkHunterService {
     }
 }
 
-module.exports = BulkHunterService;
+export default BulkHunterService;
